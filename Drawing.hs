@@ -1,11 +1,13 @@
-import Harmony
+import Composition
 import Data.Colour.RGBSpace
 import Data.Colour.RGBSpace.HSL
-import Composition
+import Data.List
 import Data.Vect.Double
 import Graphics.Rendering.Cairo
-import Data.List
+import Harmony
+import Spirograph
 import System.Random
+import Utils
 
 -- SETUP
 canvasWidth :: Double
@@ -14,8 +16,8 @@ canvasWidth = 1366
 canvasHeight :: Double
 canvasHeight = 768
 
-surface :: (Surface -> IO a) -> IO a
-surface function = withSVGSurface "out.svg" canvasWidth canvasHeight function
+surface :: (Surface -> IO a) -> String -> IO a
+surface function filename = withSVGSurface filename canvasWidth canvasHeight function
 
 sourceFromRGB :: RGB Double -> Render ()
 sourceFromRGB colour = uncurryRGB (setSourceRGB) colour
@@ -53,11 +55,52 @@ drawing (r1:r2:rands) (c:colors) = do
     mkLine pos line lineWidth c
     drawing rands colors 
 
+spiro :: [Int] -- Fixed wheels
+    -> [Int] -- Moving wheels
+    -> [Double] -- ratios (l)
+    -> [RGB Double] -- colours
+    -> Render () -- rendering.
+spiro fixed moving ratios colours = do
+    translate (canvasWidth / 2) (canvasHeight / 2)
+    let spires = zipWith3 spirograph fixed moving ratios
+    sequence_ (zipWith mkPath (map (id) spires) (tail colours))
+
+mkPath :: [(Double, Double)] -- list of points
+    -> RGB Double -- colours
+    -> Render() -- rendered
+mkPath points colour = do
+    newPath
+    sourceFromRGB colour 
+    setLineJoin LineJoinRound
+    setLineWidth 5 -- thin line
+    sequence_ (map (\(x,y) -> lineTo x y) points)
+    closePath
+    stroke
+
+dots :: Spirograph Double
+    -> RGB Double
+    -> Render()
+dots spir colour = sequence_ (map draw spir)
+    where draw (x,y) = do 
+                        save 
+                        translate x y
+                        sourceFromRGB colour
+                        arc 0 0 1 0 (2 * pi)
+                        fill 
+                        restore 
+
+drawSpiro :: Int -> IO()
+drawSpiro param = do
+    let gen     = mkStdGen param
+    let sizes   = mineSizes gen param (16, 200) (16, 200)
+    let fixed   = repeat (head (map (fst) sizes)) >>= (\x -> [x * i | i <- [1..3]])
+    let moved   = repeat (head (map (snd) sizes)) >>= (\x -> [x * i | i <- [1..3]])
+    let ratios  = cycle [0.1,0.2..0.9] --randomRs (0,1) gen :: [Double] 
+    let hue     = fst $ randomR (0, 360) gen
+    let palette = colorscheme (splitComplement hue)
+    let palette'= sortBy (lightnesscmp) $ palette -- take 30 (concat (repeat (palette)))
+    surface (flip renderWith $ (background (head palette)) >> (spiro fixed moved ratios palette')) ("out"++(show param)++".svg")
+
 -- MAIN
 main = do
-    gen <- getStdGen
-    let rands = randomRs (0.0, 1.0) gen :: [Double] 
-    let palette = concat [ separateLum r (separateSat 0.8 (monochrome 20)) | r <- rands ]
-    let palette'= sortBy (lightnesscmp) $ take 1000 (concat (repeat (palette)))
-    -- Actual drawing.
-    surface (flip renderWith $ (drawing rands palette'))
+    sequence_ $ map (drawSpiro) [2,4..8]
