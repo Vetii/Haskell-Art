@@ -4,7 +4,7 @@ import Data.Colour.RGBSpace.HSL
 import Data.List
 import Data.Vect.Double
 import Graphics.Rendering.Cairo
-import Harmony
+import Color
 import Spirograph
 import System.Random
 import Utils
@@ -91,16 +91,18 @@ dots spir colour = sequence_ (map draw spir)
 
 drawSpiro :: Int -> IO()
 drawSpiro param = do
-    let gen     = mkStdGen param
-    let sizes   = mineSizes gen param (16, 200) (16, 200)
-    let fixed   = repeat (head (map (fst) sizes)) >>= (\x -> [x * i | i <- [1..3]])
-    let moved   = repeat (head (map (snd) sizes)) >>= (\x -> [x * i | i <- [1..3]])
-    let ratios  = cycle [0.1,0.2..0.9] --randomRs (0,1) gen :: [Double] 
+    gen <- getStdGen 
+    let list    = randomRs (100,400) gen
+    let sizes   = mineSizes param list (tail list) 
+    let fixed   = cycle (take 2 (map (fst) sizes)) -- >>= (\x -> [x * i | i <- [1..3]])
+    let moved   = cycle (take 2 (map (snd) sizes)) -- >>= (\x -> [x * i | i <- [1..3]])
+    let ratios  = [0.0,0.05..1.0] --randomRs (0,1) gen >>= (\x -> [x,(1 - x)]) :: [Double]
     let hue     = fst $ randomR (0, 360) gen
-    let palette = colorscheme (splitComplement hue)
-    let palette'= sortBy (lightnesscmp) $ palette -- take 30 (concat (repeat (palette)))
-    surface (flip renderWith $ (background (head palette)) >> (spiro fixed moved ratios palette')) ("out"++(show param)++".svg")
+    let fg = (randomPaletteFrom gen) $ (light . (withHue hue) . vibrant) $ colorsDivBy 10
+    let bg = (randomPaletteFrom gen) $ (dark  . (complement hue) . dull) $ colorsDivBy 10
+    let palette = sortBy (lightnesscmp) (fg ++ bg)
+    surface (flip renderWith $ (background (head palette)) >> (spiro fixed moved ratios (tail palette))) ("out"++(show param)++".svg")
 
 -- MAIN
 main = do
-    sequence_ $ map (drawSpiro) [2,4..8]
+    sequence_ $ map (drawSpiro) [2..9]

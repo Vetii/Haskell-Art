@@ -1,5 +1,7 @@
 module Utils where
 
+import System.Random
+
 -- For the pattern 80% - 20%; etc.
 separated :: (RealFrac a) => a -> [a]
 separated x = [fx, 1.0 - fx]
@@ -15,3 +17,5 @@ lastHalf :: [a] -> [a]
 lastHalf list = drop (floor (l / 2)) list
     where l = fromIntegral (length list)
 
+shuffle :: (RandomGen g) => g -> [a] -> [a]
+shuffle g list = concat $ zipWith3 (\x y c -> if c then [x,y] else [y,x]) list (shuffle g (tail list)) (randoms g :: [Bool])

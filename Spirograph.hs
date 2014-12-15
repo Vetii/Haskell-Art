@@ -29,12 +29,10 @@ rescale :: (Fractional a) => a -> Spirograph a -> Spirograph a
 rescale f points = map (\(x, y) -> (x * f, y * f)) points
 
 -- To search for size of spirographs that return pretty results.
-mineSizes :: (RandomGen g, Random a, Integral a) => g -> a -> (a,a) -> (a,a) -> [(a,a)] 
-mineSizes gen n fixBounds mobileBounds = filter (\x -> t x == n) z
+mineSizes :: (Integral a) => a -> [a] -> [a] -> [(a,a)] 
+mineSizes n fixed mobile = filter (\x -> t x == n) (zip fixed mobile)
     where t = \(x,y) -> (lcm x y) `quot` x 
-          z = if fixBounds == mobileBounds then zip f (tail f) else zip f m 
-          f = randomRs fixBounds gen
-          m = randomRs mobileBounds gen
+
 
 area :: (Num a, Ord a) => Spirograph a -> a
 area s = deltax * deltay 
