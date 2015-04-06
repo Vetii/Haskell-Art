@@ -92,15 +92,15 @@ dots spir colour = sequence_ (map draw spir)
 drawSpiro :: Int -> IO()
 drawSpiro param = do
     gen <- getStdGen 
-    let list    = randomRs (100,400) gen
+    let list    = randomRs (24,400) gen
     let sizes   = mineSizes param list (tail list) 
-    let fixed   = cycle (take 2 (map (fst) sizes)) -- >>= (\x -> [x * i | i <- [1..3]])
-    let moved   = cycle (take 2 (map (snd) sizes)) -- >>= (\x -> [x * i | i <- [1..3]])
-    let ratios  = [0.0,0.05..1.0] --randomRs (0,1) gen >>= (\x -> [x,(1 - x)]) :: [Double]
+    let fixed   = repeat (head (map (fst) sizes)) >>= (\x -> [x * i | i <- [1,2,2,1]])
+    let moved   = repeat (head (map (snd) sizes)) >>= (\x -> [x * i | i <- [1,2,1,2]])
+    let ratios  = randomRs (0,1) gen >>= (\x -> [x,(1 - x)]) :: [Double]
     let hue     = fst $ randomR (0, 360) gen
-    let fg = (randomPaletteFrom gen) $ (light . (withHue hue) . vibrant) $ colorsDivBy 10
-    let bg = (randomPaletteFrom gen) $ (dark  . (complement hue) . dull) $ colorsDivBy 10
-    let palette = sortBy (lightnesscmp) (fg ++ bg)
+    let fg = (randomPaletteFrom gen) $ (light . (withHue hue) . vibrant) $ colorsDivBy 6
+    let bg = (randomPaletteFrom gen) $ (dark  . (complement hue) . dull) $ colorsDivBy 6
+    let palette = sortBy (lightnesscmp) $ (take 10 fg) ++ (take 10 bg)
     surface (flip renderWith $ (background (head palette)) >> (spiro fixed moved ratios (tail palette))) ("out"++(show param)++".svg")
 
 -- MAIN

@@ -19,3 +19,12 @@ lastHalf list = drop (floor (l / 2)) list
 
 shuffle :: (RandomGen g) => g -> [a] -> [a]
 shuffle g list = concat $ zipWith3 (\x y c -> if c then [x,y] else [y,x]) list (shuffle g (tail list)) (randoms g :: [Bool])
+
+lerp :: (Fractional a, Ord a) => a -> a -> a -> a
+lerp a b factor 
+    | factor >= 1.0 = b
+    | otherwise = a + ((b - a) * factor) 
+
+-- Useful for the golden ratio
+fibs :: [Integer]
+fibs = 0 : 1 : zipWith (+) fibs (tail fibs)

@@ -1,15 +1,7 @@
 module Composition where
 
 import Data.Vect
-
--- Useful for the golden ratio
-fibs :: [Integer]
-fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
-
-lerp :: (Fractional a, Ord a) => a -> a -> a -> a
-lerp a b factor 
-    | factor >= 1.0 = b
-    | otherwise = a + ((b - a) * factor) 
+import Utils
 
 ruleOfThirds :: Vec2 -> Vec2 -> [Vec2]
 ruleOfThirds min max = [ Vec2 x y | x <- xs, y <- ys]

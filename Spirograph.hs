@@ -12,7 +12,7 @@ newPoint :: (Floating a)
     -> a -- ratio p / r (p being where the pen is on the wheel and r the radius.
     -> a -- t the angle 0 <= t <= 2 * pi.
     -> Point a -- coords of x and y.
-newPoint r k l t = (x t,y t)
+newPoint r k l t = (x t, y t)
     where x = \t -> r * ((1-k) * cos t + l * k * cos (((1-k)/k) * t))
           y = \t -> r * ((1-k) * sin t - l * k * sin (((1-k)/k) * t))
 

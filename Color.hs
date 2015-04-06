@@ -101,5 +101,5 @@ paletteFrom p = [hsl h s l | h <- hues p, s <- saturations p, l <- luminances p,
 
 randomPaletteFrom :: (RandomGen g, RealFrac a) => g -> Palette a -> [RGB a]
 randomPaletteFrom g p = concat selectedCols 
-    where selectedCols = zipWith (\x c -> if c then [x] else []) (paletteFrom p) (randCoins) 
+    where selectedCols = zipWith (\x c -> if c then [x] else []) (cycle (paletteFrom p)) (randCoins) 
           randCoins = randoms g :: [Bool]
