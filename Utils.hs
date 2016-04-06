@@ -10,12 +10,10 @@ separated x = [fx, 1.0 - fx]
 -- How to cut a list in two parts.
 -- (Useful for separation of foreground / background
 firstHalf :: [a] -> [a]
-firstHalf list = take (floor (l / 2)) list
-    where l = fromIntegral (length list)
+firstHalf list = take (div (length list) 2) list
 
 lastHalf :: [a] -> [a]
-lastHalf list = drop (floor (l / 2)) list
-    where l = fromIntegral (length list)
+lastHalf list  = drop (div (length list) 2) list
 
 shuffle :: (RandomGen g) => g -> [a] -> [a]
 shuffle g list = concat $ zipWith3 (\x y c -> if c then [x,y] else [y,x]) list (shuffle g (tail list)) (randoms g :: [Bool])

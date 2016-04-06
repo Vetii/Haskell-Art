@@ -4,7 +4,9 @@ import Data.Colour.RGBSpace
 import Data.Colour.RGBSpace.HSL
 import System.Random
 
-type Palette a = ([a],[a],[a]) -- Hue, Sat, Val
+data Palette a = Palette { hues :: [a], 
+                           saturations :: [a],
+                           luminances :: [a] } 
 
 allHues :: (Enum a, Num a) => [a]
 allHues = [0..360]
@@ -15,25 +17,15 @@ allSaturations = [0..1.0]
 allLuminances :: (Enum a, Fractional a) => [a]
 allLuminances = [0..1.0]
 
--- GETTERS
-hues :: Palette a -> [a]
-hues (h,_,_) = h
-
-saturations :: Palette a -> [a]
-saturations (_,s,_) = s
-
-luminances :: Palette a -> [a]
-luminances (_,_,l) = l 
-
--- MODIFIER 
+-- MODIFIERS
 modHues :: ([a] -> [a]) -> Palette a -> Palette a
-modHues f (h,s,l) = (f h,s,l)
+modHues f (Palette h s l) = Palette (f h) s l
 
 modSats :: ([a] -> [a]) -> Palette a -> Palette a  
-modSats f (h,s,l) = (h,f s,l) 
+modSats f (Palette h s l) = Palette h (f s) l
 
 modLums :: ([a] -> [a]) -> Palette a -> Palette a  
-modLums f (h,s,l) = (h,s,f l) 
+modLums f (Palette h s l) = Palette h s (f l)
 
 -- COMPARATORS
 lightnesscmp :: (Ord a, Fractional a) => RGB a -> RGB a -> Ordering
@@ -57,7 +49,7 @@ lumDivBy x = let offset = 1.0 / x
              in [0,offset..1.0]
 
 colorsDivBy :: (Enum a, Num a, Fractional a) => a -> Palette a
-colorsDivBy x = (hueDivBy x, satDivBy x, lumDivBy x)
+colorsDivBy x = Palette (hueDivBy x) (satDivBy x) (lumDivBy x)
 
 -- HUE MODIFICATION
 -- Warm & cold colors
@@ -78,7 +70,6 @@ analogous h = modHues (const (map (h+) [(-36),36]))
 
 splitComplement :: (Num a) => a -> Palette a -> Palette a
 splitComplement h = modHues (const (map (h+) [288,432]))
-
 
 -- SATURATION MODIFICATION
 -- Dull & vibrant 
